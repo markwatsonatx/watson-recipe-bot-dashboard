@@ -1,0 +1,23 @@
+<html>
+<head>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.css">
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script src="http://localhost:6016/client.js"></script>
+</head>
+<body style="font-family: Verdana;">
+
+<div id="app">
+  <span style="font-size: 12pt;" v-for="notification in notifications">
+  {{ notification.message }}<br>
+  </span>
+</div>
+
+<div id="the-graph">
+</div>
+
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.js"></script>
+<script src="scripts/app.js"></script>
+
+</body>
+</html>

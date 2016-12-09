@@ -1,0 +1,8 @@
+applications:
+- path: .
+  memory: 256M
+  instances: 1
+  domain: mybluemix.net
+  name: watson-recipe-bot-dashboard
+  host: watson-recipe-bot-dashboard
+  disk_quota: 1024M
