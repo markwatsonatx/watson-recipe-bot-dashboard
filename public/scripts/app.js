@@ -2,11 +2,14 @@ var app = new Vue({
     el: '#app',
     data: {
         users: [],
-        activeUser: { name: null, state: null, notifications: []}
+        activeUser: { name: null, state: null, notifications: [], graph: null},
+        activeGraph: null,
+        activeGraphNodes: null,
+        activeGraphEdges: null
     },
     methods: {
         loadGraphForCurrentUser: function() {
-            loadGraph(app.activeUser.state);
+            loadGraph(app.activeUser);
         },
         switchUser: function(user) {
             for (var i=0; i<app.users.length; i++) {
@@ -15,7 +18,12 @@ var app = new Vue({
                     break;
                 }
             }
-            app.loadGraphForCurrentUser();
+            if (app.activeUser.graph) {
+                showGraph(app.activeUser);
+            }
+            else {
+                app.loadGraphForCurrentUser();
+            }
         }
     }
 });
@@ -59,22 +67,26 @@ sns.on('notification', function(n) {
     }
 });
 
-var loadGraph = function(state) {
-    // var data = '[{"labels":[[],[],[],[],[]],"objects":[{"id":454672,"label":"person","type":"vertex","properties":{"name":[{"id":"4v0i-9qts-sl","value":"Kevin Bacon"}],"type":[{"id":"4veq-9qts-1l1","value":"Actor"}]}},{"id":"ho1u-9qts-3yt-kge8","label":"actor","type":"edge","inVLabel":"film","outVLabel":"person","inV":954368,"outV":454672},{"id":954368,"label":"film","type":"vertex","properties":{"name":[{"id":"oo4qo-kge8-sl","value":"Apollo 13"}],"type":[{"id":"oo54w-kge8-1l1","value":"Film"}]}},{"id":"owt8g-kge8-3yt-euag","label":"actor","type":"edge","inVLabel":"person","outVLabel":"film","inV":692440,"outV":954368},{"id":692440,"label":"person","type":"vertex","properties":{"name":[{"id":"7eor-euag-sl","value":"Tom Hanks"}],"type":[{"id":"7f2z-euag-1l1","value":"Actor"}]}}]}]';
-    // showGraph(JSON.parse(data));
-    console.log('Retrieving graph data...');
-    var url = '/graph/' + state.user;
+var loadGraph = function(user) {
+    console.log('Loading graph...');
+    if (user.graph && app.activeGraph) {
+        if (updateGraph(user)) {
+            return;
+        }
+    }
+    console.log('Loading graph data from server...');
+    var url = '/graph/' + user.name;
     $.get(url, function(response) {
-        if (response.success) {
-            console.log('Graph data recieved.'); //= ' + JSON.stringify(response));
-            showGraph(state, response.data);
+        if (response.success && response.data) {
+            console.log('Graph data retrieved from server.');
+            user.graph = response.data;
+            showGraph(user);
         }
     });
 };
 
-var showGraph = function(state, data) {
-    //console.log(data);
-    var graphVisContainer = $('#the-graph').parent().parent();
+var showGraph = function(user) {
+    var graphVisContainer = $('#graph').parent().parent();
     if (graphVisContainer.hasClass('hidden')) {
         graphVisContainer.removeClass('hidden');
     }
@@ -82,8 +94,8 @@ var showGraph = function(state, data) {
     var ignoreNodes = [];
     var rawEdges = [];
     var ignoreEdges = [];
-    for (var i=0; i<data.length; i++) {
-        var path = data[i].objects;
+    for (var i=0; i<user.graph.length; i++) {
+        var path = user.graph[i].objects;
         for (var j = 0; j<path.length; j++) {
             var obj = path[j];
             if (obj.type == 'vertex') {
@@ -92,25 +104,29 @@ var showGraph = function(state, data) {
                         id: obj.id,
                         label: obj.properties.name[0].value,
                         shape: 'circle',
+                        metadata: {
+                            vertex_label: obj.label,
+                            vertex_name: obj.properties.name[0].value
+                        }
                     };
                     var highlight = false;
                     if (obj.label == 'person') {
                         highlight = true;
                     }
-                    else if (state.ingredient && obj.label == 'ingredient' && obj.properties.name[0].value == state.ingredient) {
+                    else if (user.state.ingredient && obj.label == 'ingredient' && obj.properties.name[0].value == user.state.ingredient) {
                         highlight = true;
                     }
-                    else if (state.cuisine && obj.label == 'cuisine' && obj.properties.name[0].value == state.cuisine) {
+                    else if (user.state.cuisine && obj.label == 'cuisine' && obj.properties.name[0].value == user.state.cuisine) {
                         highlight = true;
                     }
-                    else if (state.recipe && obj.label == 'recipe' && obj.properties.name[0].value == state.recipe) {
+                    else if (user.state.recipe && obj.label == 'recipe' && obj.properties.name[0].value == user.state.recipe) {
                         highlight = true;
                     }
                     if (highlight) {
-                        nodeObject.color = {
-                            color:'#FFFFFF',
-                            background:'#FF0000'
-                        };
+                        nodeObject.color = { background:'#FF0000' };
+                    }
+                    else {
+                        nodeObject.color = { background:'#FFFF00' };
                     }
                     rawNodes.push(nodeObject);
                     ignoreNodes.push(obj.id);
@@ -127,17 +143,63 @@ var showGraph = function(state, data) {
             }
         }
     }
-    console.log(rawNodes);
-    // create an array with nodes
-    var nodes = new vis.DataSet(rawNodes);
-    // create an array with edges
-    var edges = new vis.DataSet(rawEdges);
-    // create a network
-    var container = document.getElementById('the-graph');
+    app.activeGraphNodes = new vis.DataSet(rawNodes);
+    app.activeGraphEdges = new vis.DataSet(rawEdges);
+    var container = document.getElementById('graph');
     var data = {
-        nodes: nodes,
-        edges: edges,
+        nodes: app.activeGraphNodes,
+        edges: app.activeGraphEdges,
     };
     var options = {};
-    var network = new vis.Network(container, data, options);
+    app.activeGraph = new vis.Network(container, data, options);
+};
+
+var updateGraph = function(user) {
+    var vertices = [{label: 'person', name: user.name}];
+    if (user.state.ingredient) {
+        vertices.push({label: 'ingredient', name: user.state.ingredient});
+    }
+    if (user.state.cuisine) {
+        vertices.push({label: 'cuisine', name: user.state.cuisine});
+    }
+    if (user.state.recipe) {
+        vertices.push({label: 'recipe', name: user.state.recipe});
+    }
+    for (var i=0; i<vertices.length; i++) {
+        var vertexFound = false;
+        for (var j=0; j<user.graph.length; j++) {
+            var path = user.graph[j].objects;
+            for (var k=0; k<path.length; k++) {
+                var obj = path[k];
+                if (obj.type == 'vertex' && obj.label == vertices[i].label && obj.properties.name[0].value == vertices[i].name) {
+                    vertexFound = true;
+                    break;
+                }
+            }
+            if (vertexFound) {
+                break;
+            }
+        }
+        if (! vertexFound) {
+            return false;
+        }
+    }
+    console.log('Using local graph data...');
+    app.activeGraphNodes.forEach(function(node) {
+        var highlight = false;
+        for (var i=0; i<vertices.length; i++) {
+            if (node.metadata.vertex_label == vertices[i].label && node.metadata.vertex_name == vertices[i].name) {
+                highlight = true;
+                break;
+            }
+        }
+        var bgcolor = '#FFFF00';
+        if (highlight) {
+            bgcolor = '#FF0000';
+        }
+        if (node.color.background != bgcolor) {
+            app.activeGraphNodes.update([{id:node.id, color:{background:bgcolor}}]);
+        }
+    });
+    return true;
 };
