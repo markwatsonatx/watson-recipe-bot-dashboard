@@ -1,21 +1,47 @@
 <html>
 <head>
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
   <script src="https://unpkg.com/vue/dist/vue.js"></script>
   <script src="http://localhost:6016/client.js"></script>
 </head>
-<body style="font-family: Verdana;">
+<body>
+
+<nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Watson Recipe Bot Dashboard</a>
+    </div>
+  </div>
+</nav>
 
 <div id="app">
-  <span style="font-size: 12pt;" v-for="notification in notifications">
-  {{ notification.message }}<br>
-  </span>
-</div>
-
-<div id="the-graph">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-2 col-md-2 sidebar">
+        <h3>Users</h3>
+        <ul class="nav nav-sidebar">
+          <li v-for="user in users"><a href v-on:click.prevent="switchUser(user)">{{ user.name }}</a></li>
+        </ul>
+      </div>
+      <div class="col-sm-3 col-md-3">
+        <h3>Events</h3>
+        <ul class="nav nav-sidebar">
+          <li v-for="notification in activeUser.notifications">{{ notification.message }}</li>
+        </ul>
+      </div>
+      <div class="col-sm-7 col-md-7 main">
+        <h3>Graph</h3>
+        <div id="the-graph">
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.js"></script>
 <script src="scripts/app.js"></script>
 

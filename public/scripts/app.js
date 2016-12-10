@@ -1,12 +1,21 @@
 var app = new Vue({
     el: '#app',
     data: {
-        state: null,
-        notifications: []
+        users: [],
+        activeUser: { name: null, state: null, notifications: []}
     },
     methods: {
-        loadGraphForCurrentUser: function () {
-            loadGraph(app.state);
+        loadGraphForCurrentUser: function() {
+            loadGraph(app.activeUser.state);
+        },
+        switchUser: function(user) {
+            for (var i=0; i<app.users.length; i++) {
+                if (app.users[i].name == user.name) {
+                    app.activeUser = app.users[i];
+                    break;
+                }
+            }
+            app.loadGraphForCurrentUser();
         }
     }
 });
@@ -21,15 +30,33 @@ var sns = new SNSClient("demokey", {
 });
 
 sns.on('connected', function() {
-    console.log("CONNECTED! ID=" + sns.id);
-    //app.getAvailablePlayer(sns.id);
 });
 
 sns.on('notification', function(n) {
-    console.log('Recievied notification. State = ' + JSON.stringify(n.state));
-    app.notifications.push(n);
-    app.state = n.state;
-    app.loadGraphForCurrentUser();
+    console.log('Recievied notification.');
+    var user = null;
+    for (var i=0; i<app.users.length; i++) {
+        if (app.users[i].name == n.state.user) {
+            user = app.users[i];
+            break;
+        }
+    }
+    if (! user) {
+        user = {
+            name: n.state.user,
+            state: n.state,
+            notifications: []
+        };
+        app.users.push(user);
+    }
+    if (! app.activeUser.name) {
+        app.activeUser = user;
+    }
+    user.notifications.push(n);
+    user.state = n.state;
+    if (user.name == app.activeUser.name) {
+        app.loadGraphForCurrentUser();
+    }
 });
 
 var loadGraph = function(state) {
@@ -81,7 +108,7 @@ var showGraph = function(state, data) {
                     }
                     if (highlight) {
                         nodeObject.color = {
-                            foreground:'#FFFFFF',
+                            color:'#FFFFFF',
                             background:'#FF0000'
                         };
                     }
