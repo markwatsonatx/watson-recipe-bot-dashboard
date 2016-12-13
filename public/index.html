@@ -1,48 +1,50 @@
 <html>
 <head>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/master.css">
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.css">
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
   <script src="https://unpkg.com/vue/dist/vue.js"></script>
   <script src="http://localhost:6016/client.js"></script>
 </head>
-<body>
+<body class="capped-layout">
 
-<nav class="navbar navbar-default">
-  <div class="container">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="#">Watson Recipe Bot Dashboard</a>
-    </div>
-  </div>
-</nav>
+<header class="capped-layout_cap app-banner">
+  <a class="app-banner_title" rel="home" href="https://developer.ibm.com/clouddataservices">Watson Recipe Bot Dashboard</a>
+</header>
 
 <div id="app">
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-sm-2 col-md-2 sidebar">
-        <h3>Users</h3>
-        <ul class="nav nav-sidebar">
-          <li v-for="user in users"><a href v-on:click.prevent="switchUser(user)">{{ user.name }}</a></li>
-        </ul>
-      </div>
-      <div class="col-sm-3 col-md-3">
-        <h3>Events</h3>
-        <ul class="nav nav-sidebar">
-          <li v-for="notification in activeUser.notifications">{{ notification.message }}</li>
-        </ul>
-      </div>
-      <div class="col-sm-7 col-md-7 main">
-        <h3>Graph</h3>
-        <div id="graph" style="width: 600px; height: 600px">
-        </div>
-      </div>
+  <div class="capped-layout_body bookend-layout">
+    <nav class="bookend-layout_bookend theme_light bg_white">
+      <ul class="tree-nav">
+        <li class="tree-nav_item">
+          <a class="tree-nav_link top-nav">Users</a>
+          <ul class="tree-nav">
+            <li v-for="user in users" class="tree-nav_item">
+              <a class="tree-nav_link" href v-on:click.prevent="switchUser(user)">{{ user.name }}</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <nav class="bookend-layout_bookend theme_light bg_light">
+      <ul class="tree-nav">
+        <li class="tree-nav_item">
+          <a class="tree-nav_link top-nav">Actions</a>
+          <ul class="tree-nav">
+            <li v-for="notification in activeUser.notifications" class="tree-nav_item"><a class="tree-nav_link" href="#">{{ notification.message }}</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <div class="bookend-layout_body theme_dark scrollable-y">
+      <div id="graph" style="width: 600px; height: 600px"></div>
     </div>
   </div>
 </div>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.js"></script>
 <script src="//cdn.jsdelivr.net/vue.resource/1.0.3/vue-resource.min.js"></script>
-<script src="scripts/app.js"></script>
+<script src="js/app.js"></script>
 
 </body>
 </html>

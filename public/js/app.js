@@ -152,10 +152,10 @@ var showGraph = function(user) {
                         highlight = true;
                     }
                     if (highlight) {
-                        nodeObject.color = { background:'#FF0000' };
+                        nodeObject.color = { background:'#ff3ca0' };
                     }
                     else {
-                        nodeObject.color = { background:'#FFFF00' };
+                        nodeObject.color = { background:'#41d6c3' };
                     }
                     rawNodes.push(nodeObject);
                     ignoreNodes.push(obj.id);
@@ -222,9 +222,9 @@ var updateGraph = function(user) {
                 break;
             }
         }
-        var bgcolor = '#FFFF00';
+        var bgcolor = '#41d6c3';
         if (highlight) {
-            bgcolor = '#FF0000';
+            bgcolor = '#ff3ca0';
         }
         if (node.color.background != bgcolor) {
             app.activeGraphNodes.update([{id:node.id, color:{background:bgcolor}}]);
