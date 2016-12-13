@@ -30,7 +30,8 @@ var app = new Vue({
 
 var sns = new SNSClient("demokey", {
     userData: {
-        type: 'dashboard'
+        type: 'action',
+        name: 'dashboard'
     },
     userQuery: {
         type: 'action'
@@ -38,6 +39,37 @@ var sns = new SNSClient("demokey", {
 });
 
 sns.on('connected', function() {
+    Vue.http.get('http://localhost:6016/demokey/historical?type=action')
+        .then(function(res) {
+            if (res.ok && res.data.success) {
+                for (var i=res.data.notifications.length-1; i>=0; i--) {
+                    var n = res.data.notifications[i];
+                    var user = null;
+                    for (var j=0; j<app.users.length; j++) {
+                        if (app.users[j].name == n.state.user) {
+                            user = app.users[j];
+                            break;
+                        }
+                    }
+                    if (! user) {
+                        user = {
+                            name: n.state.user,
+                            state: n.state,
+                            notifications: []
+                        };
+                        app.users.push(user);
+                    }
+                    if (! app.activeUser.name) {
+                        app.activeUser = user;
+                    }
+                    user.notifications.push(n);
+                    user.state = n.state;
+                }
+                if (user) {
+                    app.loadGraphForCurrentUser();
+                }
+            }
+        });
 });
 
 sns.on('notification', function(n) {
@@ -76,20 +108,17 @@ var loadGraph = function(user) {
     }
     console.log('Loading graph data from server...');
     var url = '/graph/' + user.name;
-    $.get(url, function(response) {
-        if (response.success && response.data) {
-            console.log('Graph data retrieved from server.');
-            user.graph = response.data;
-            showGraph(user);
-        }
-    });
+    Vue.http.get(url)
+        .then(function(res) {
+            if (res.ok && res.data.success) {
+                console.log('Graph data retrieved from server.');
+                user.graph = res.data.data;
+                showGraph(user);
+            }
+        });
 };
 
 var showGraph = function(user) {
-    var graphVisContainer = $('#graph').parent().parent();
-    if (graphVisContainer.hasClass('hidden')) {
-        graphVisContainer.removeClass('hidden');
-    }
     var rawNodes = [];
     var ignoreNodes = [];
     var rawEdges = [];
