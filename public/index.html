@@ -19,7 +19,7 @@
         <li class="tree-nav_item">
           <a class="tree-nav_link top-nav">Users</a>
           <ul class="tree-nav">
-            <li v-for="user in users" class="tree-nav_item">
+            <li class="tree-nav_item" v-for="user in users">
               <a class="tree-nav_link" href v-on:click.prevent="switchUser(user)">{{ user.name }}</a>
             </li>
           </ul>
@@ -31,7 +31,9 @@
         <li class="tree-nav_item">
           <a class="tree-nav_link top-nav">Actions</a>
           <ul class="tree-nav">
-            <li v-for="notification in activeUser.notifications" class="tree-nav_item"><a class="tree-nav_link" href="#">{{ notification.message }}</a></li>
+            <li class="tree-nav_item" v-for="notification in activeUser.notifications">
+              <a class="tree-nav_link" href v-on:click.prevent="setActiveState(notification.state)">{{ notification.message }}</a>
+            </li>
           </ul>
         </li>
       </ul>

@@ -3,27 +3,33 @@ var app = new Vue({
     data: {
         users: [],
         activeUser: { name: null, state: null, notifications: [], graph: null},
+        activeState: null,
         activeGraph: null,
         activeGraphNodes: null,
         activeGraphEdges: null
     },
     methods: {
         loadGraphForCurrentUser: function() {
-            loadGraph(app.activeUser);
+            loadGraph(app.activeUser, app.activeState);
         },
         switchUser: function(user) {
             for (var i=0; i<app.users.length; i++) {
                 if (app.users[i].name == user.name) {
                     app.activeUser = app.users[i];
+                    app.activeState = app.activeUser.state;
                     break;
                 }
             }
             if (app.activeUser.graph) {
-                showGraph(app.activeUser);
+                showGraph(app.activeUser, app.activeState);
             }
             else {
                 app.loadGraphForCurrentUser();
             }
+        },
+        setActiveState: function(state) {
+            app.activeState = state;
+            updateGraph(app.activeUser, app.activeState);
         }
     }
 });
@@ -66,6 +72,8 @@ sns.on('connected', function() {
                     user.state = n.state;
                 }
                 if (user) {
+                    // on first load use the latest state and then load the graph
+                    app.activeState = app.activeUser.state;
                     app.loadGraphForCurrentUser();
                 }
             }
@@ -95,14 +103,15 @@ sns.on('notification', function(n) {
     user.notifications.push(n);
     user.state = n.state;
     if (user.name == app.activeUser.name) {
+        app.activeState = app.activeUser.state;
         app.loadGraphForCurrentUser();
     }
 });
 
-var loadGraph = function(user) {
+var loadGraph = function(user, state) {
     console.log('Loading graph...');
     if (user.graph && app.activeGraph) {
-        if (updateGraph(user)) {
+        if (updateGraph(user, state)) {
             return;
         }
     }
@@ -113,12 +122,12 @@ var loadGraph = function(user) {
             if (res.ok && res.data.success) {
                 console.log('Graph data retrieved from server.');
                 user.graph = res.data.data;
-                showGraph(user);
+                showGraph(user, state);
             }
         });
 };
 
-var showGraph = function(user) {
+var showGraph = function(user, state) {
     var rawNodes = [];
     var ignoreNodes = [];
     var rawEdges = [];
@@ -142,13 +151,13 @@ var showGraph = function(user) {
                     if (obj.label == 'person') {
                         highlight = true;
                     }
-                    else if (user.state.ingredient && obj.label == 'ingredient' && obj.properties.name[0].value == user.state.ingredient) {
+                    else if (state.ingredient && obj.label == 'ingredient' && obj.properties.name[0].value == state.ingredient) {
                         highlight = true;
                     }
-                    else if (user.state.cuisine && obj.label == 'cuisine' && obj.properties.name[0].value == user.state.cuisine) {
+                    else if (state.cuisine && obj.label == 'cuisine' && obj.properties.name[0].value == state.cuisine) {
                         highlight = true;
                     }
-                    else if (user.state.recipe && obj.label == 'recipe' && obj.properties.name[0].value == user.state.recipe) {
+                    else if (state.recipe && obj.label == 'recipe' && obj.properties.name[0].value == state.recipe) {
                         highlight = true;
                     }
                     if (highlight) {
@@ -183,16 +192,16 @@ var showGraph = function(user) {
     app.activeGraph = new vis.Network(container, data, options);
 };
 
-var updateGraph = function(user) {
+var updateGraph = function(user, state) {
     var vertices = [{label: 'person', name: user.name}];
-    if (user.state.ingredient) {
-        vertices.push({label: 'ingredient', name: user.state.ingredient});
+    if (state.ingredient) {
+        vertices.push({label: 'ingredient', name: state.ingredient});
     }
-    if (user.state.cuisine) {
-        vertices.push({label: 'cuisine', name: user.state.cuisine});
+    if (state.cuisine) {
+        vertices.push({label: 'cuisine', name: state.cuisine});
     }
-    if (user.state.recipe) {
-        vertices.push({label: 'recipe', name: user.state.recipe});
+    if (state.recipe) {
+        vertices.push({label: 'recipe', name: state.recipe});
     }
     for (var i=0; i<vertices.length; i++) {
         var vertexFound = false;
