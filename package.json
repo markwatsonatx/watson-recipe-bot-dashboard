@@ -8,8 +8,10 @@
   "dependencies": {
     "cfenv": "1.0.x",
     "dotenv": "^2.0.0",
+    "ejs": "^2.5.5",
     "express": "4.13.x",
-    "ibm-graph-client": "^0.3.7"
+    "ibm-graph-client": "^0.3.7",
+    "pug": "^2.0.0-beta6"
   },
   "repository": {},
   "engines": {

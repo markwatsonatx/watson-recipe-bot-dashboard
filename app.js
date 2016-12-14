@@ -6,6 +6,9 @@ var GDS = require('ibm-graph-client');
 // load from .env
 dotenv.config();
 
+var snsApiUrl = process.env.SNS_API_URL;
+var snsApiKey = process.env.SNS_API_KEY;
+
 // create graph client
 if (process.env.VCAP_SERVICES) {
     var vcapServices = JSON.parse(process.env.VCAP_SERVICES);
@@ -16,7 +19,7 @@ if (process.env.VCAP_SERVICES) {
 }
 
 var graphClient = new GDS({
-    url: process.env.GRAPH_URL || config.credentials.apiURL,
+    url: process.env.GRAPH_API_URL || config.credentials.apiURL,
     username: process.env.GRAPH_USERNAME || config.credentials.username,
     password: process.env.GRAPH_PASSWORD || config.credentials.password,
 });
@@ -46,6 +49,15 @@ app.get('/graph/:user', function(req, res) {
 
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/public'));
+
+// set view engine and map views directory
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+
+// map requests
+app.get('/', function(req, res) {
+    res.render('index.ejs', {snsApiUrl: snsApiUrl});
+});
 
 // get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();

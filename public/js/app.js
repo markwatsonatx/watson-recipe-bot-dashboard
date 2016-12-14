@@ -1,6 +1,7 @@
 var app = new Vue({
     el: '#app',
     data: {
+        snsApiUrl: '',
         users: [],
         activeUser: { name: null, state: null, notifications: [], graph: null},
         activeState: null,
@@ -45,7 +46,7 @@ var sns = new SNSClient("demokey", {
 });
 
 sns.on('connected', function() {
-    Vue.http.get('http://localhost:6016/demokey/historical?type=action')
+    Vue.http.get(app.snsApiUrl + '/demokey/historical?type=action')
         .then(function(res) {
             if (res.ok && res.data.success) {
                 for (var i=res.data.notifications.length-1; i>=0; i--) {
